@@ -1,0 +1,8 @@
+"TechTypes","TV","Thermostat","Washing Machine"
+"TechTypeIcons","hex","triangle","fire"
+"Households","Default"
+"Suppliers","Shop","Webshop","ESCO"
+"AllEnergyLabels","D","C","B","A","A+","A++","A+++"
+"heatingsystem-label-efficiencies",56,78,86,94,112,138,150
+"EnergyLabelColors",0,5,15,25,64,68,45
+"SupplierColors",9.9,85,116

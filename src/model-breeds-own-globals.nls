@@ -1,0 +1,161 @@
+breed [technologies technology]
+breed [appliances appliance]
+breed [households household]
+breed [suppliers supplier]
+undirected-link-breed [appl-links appl-link]                ;; IB180709: to accommodate other types of link (socio, for instance)
+undirected-link-breed [friends friend]
+
+technologies-own [
+  tech-ID
+  tech-type ;; Fridge, TV, etc.
+  ; properties from data file:
+  tech-label ;; energy label
+  tech-label-index ;; energy label converted to number
+  tech-label-efficiency ;; deduced from the label
+  tech-price ;; this is the recommended retail price, may differ from the actual price in store (which is appl-price)
+  tech-electricity-consumption
+  tech-gas-consumption
+  tech-size
+  tech-volume
+  tech-lifetime
+  tech-rating
+  tech-savings
+  tech-remote
+  tech-display
+  tech-install-time
+  tech-warranty
+  tech-capacity
+  tech-cw
+  tech-tap-capacity-at-60
+  tech-lifetime-standard-deviation ;; the standard deviation in actual lifetime
+  tech-introduction-year ;; from when the appliance is available
+  tech-price-annual-change-percentage
+  tech-electricity-consumption-annual-change-percentage
+  tech-gas-consumption-annual-change-percentage
+]
+
+appliances-own [
+
+  appl-tick-installed
+  appl-end-of-life
+  appl-tech
+  appl-status ; operating, decommissioned, old, for sale
+  appl-price ; the price the appliance is offered for
+
+  ;temporary variable for chooseAppliance
+  my-hh-util-e
+
+]
+
+households-own [
+ 
+  ; PROPERTIES FROM DATA FILE
+  hh-age
+  hh-bigfamily
+  hh-buildingbuilt
+  hh-buildingowner
+  hh-buildingsize
+  hh-buildingtype
+  hh-e-price
+  hh-elder
+  hh-eleccosts
+  hh-envbehav
+  hh-envbehav01
+  hh-fridge-age
+  hh-fridge-class
+  hh-fridge-incl
+  hh-fridge-size
+  hh-fridge-minop
+  hh-fridge-maxop
+  hh-fridge-life
+  hh-fridge-plan
+  hh-heat-age
+  hh-heat-type1
+  hh-heat-type2
+  hh-heatconsarea
+  hh-heatcost
+  hh-heatcostrep
+  hh-income
+  ; hh-income-group
+  hh-lowincome
+  hh-rebates
+  hh-rec-comtec
+  hh-rec-enepro
+  hh-rec-gov
+  hh-rec-indage
+  hh-rec-media
+  hh-rec-neirelfri
+  hh-rec-nongovenv
+  hh-rec-priwebblo
+  hh-rec-resins
+  hh-rec-socnet
+  hh-therm-appcnt
+  hh-therm-appdwn
+  hh-therm-appinf
+  hh-therm-phone
+  hh-therm-plan
+  hh-therm-prog
+  hh-therm-smart
+  
+  ; FROM ORTHER SOURCE
+  hh-util-func-alpha
+
+  ; INTERNAL VARIABLES
+  hh-capital
+  hh-electricity-consumption                   ;; Electricity consumed in tick
+  hh-electricity-cost                          ;; Electricity cost in tick
+  hh-energy-cost                               ;; Gas cost in tick
+  hh-expenses
+  hh-gas-consumption                           ;; Gas consumed in tick
+  hh-supplier
+  hh-number-of-options
+  hh-size
+  hh-have-heating
+  hh-gas-consumption-base
+
+]
+
+suppliers-own [
+  ; properties from data file
+  suppl-type
+  suppl-profit-goal
+  suppl-profit-importance
+  suppl-sales-goal
+  suppl-sales-importance
+  suppl-overhead-costs
+  suppl-cost-of-reaching-hh
+  suppl-lease-contract-duration
+  suppl-effort-value
+  suppl-advertising-budget
+  suppl-capital ; they money they have
+  suppl-sales ; the number of appliances sold
+]
+
+globals [
+  TechTypes
+  TechTypeIcons
+  IntermediaryTypes
+  HouseholdTypes
+  SupplierTypes
+  all-energy-labels
+  energy-label-colors
+  all-supplier-types
+  supplier-colors
+  
+  electricity-prices
+  gas-prices
+  
+  ;The coefficients for beta functions as list per TechType
+  fridge-util-coefficients
+  washmach-util-coefficients
+  tv-util-coefficients 
+  thermostat-util-coefficients 
+  heatingsystem-util-coefficients 
+  
+  fridge-stock
+  washmach-stock
+  tv-stock
+  thermostat-stock
+  heatingsystem-stock
+  heatingsystem-label-efficiencies
+]

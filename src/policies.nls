@@ -1,0 +1,76 @@
+to apply-policies
+  
+  if policy-allowed-labels-tv = "off"                [ apply-policy-labels-tvs [51 51 51 51 51] ]
+  if policy-allowed-labels-tv = "slow"               [ apply-policy-labels-tvs [ 5 10 15 20 25] ]
+  if policy-allowed-labels-tv = "fast"               [ apply-policy-labels-tvs [ 2  5  8 11 14] ]
+  if policy-allowed-labels-tv = "fixed"              []           
+  
+  if policy-allowed-labels-fridge = "off"            [ apply-policy-labels-fridges [51 51 51 51 51] ]
+  if policy-allowed-labels-fridge = "slow"           [ apply-policy-labels-fridges [ 0  0  0 25 25] ]
+  if policy-allowed-labels-fridge = "fast"           [ apply-policy-labels-fridges [ 2  5  8 11 14] ]
+  if policy-allowed-labels-fridge = "fixed"          []
+  
+  if policy-allowed-labels-washmach = "off"          [ apply-policy-labels-washmachs [51 51 51 51 51] ]
+  if policy-allowed-labels-washmach = "slow"         [ apply-policy-labels-washmachs [ 5 10 15 20 25] ]
+  if policy-allowed-labels-washmach = "fast"         [ apply-policy-labels-washmachs [ 2  5  8 11 14] ]
+  if policy-allowed-labels-washmach = "fixed"        []
+  
+end
+
+
+to apply-policy-labels-fridges [years]
+  if (ticks / ticks-per-year) <  item 0 years [ set labels-allowed-fridge "any label" ] 
+  if (ticks / ticks-per-year) >= item 0 years [ set labels-allowed-fridge "B or higher" ] 
+  if (ticks / ticks-per-year) >= item 1 years [ set labels-allowed-fridge "A or higher" ] 
+  if (ticks / ticks-per-year) >= item 2 years [ set labels-allowed-fridge "A+ or higher" ] 
+  if (ticks / ticks-per-year) >= item 3 years [ set labels-allowed-fridge "A++ or higher" ] 
+  if (ticks / ticks-per-year) >= item 4 years [ set labels-allowed-fridge "A+++ or higher" ] 
+end
+
+
+to apply-policy-labels-tvs [years]
+  if (ticks / ticks-per-year) <  item 0 years [ set labels-allowed-TV "any label" ] 
+  if (ticks / ticks-per-year) >= item 0 years [ set labels-allowed-TV "B or higher" ] 
+  if (ticks / ticks-per-year) >= item 1 years [ set labels-allowed-TV "A or higher" ] 
+  if (ticks / ticks-per-year) >= item 2 years [ set labels-allowed-TV "A+ or higher" ] 
+  if (ticks / ticks-per-year) >= item 3 years [ set labels-allowed-TV "A++ or higher" ] 
+  if (ticks / ticks-per-year) >= item 4 years [ set labels-allowed-TV "A+++ or higher" ] 
+end
+
+
+to apply-policy-labels-washmachs [years]
+  if (ticks / ticks-per-year) <  item 0 years [ set labels-allowed-washmach "any label" ] 
+  if (ticks / ticks-per-year) >= item 0 years [ set labels-allowed-washmach "B or higher" ] 
+  if (ticks / ticks-per-year) >= item 1 years [ set labels-allowed-washmach "A or higher" ] 
+  if (ticks / ticks-per-year) >= item 2 years [ set labels-allowed-washmach "A+ or higher" ] 
+  if (ticks / ticks-per-year) >= item 4 years [ set labels-allowed-washmach "A++ or higher" ] 
+  if (ticks / ticks-per-year) >= item 4 years [ set labels-allowed-washmach "A+++ or higher" ] 
+end
+
+
+to-report apply-label-subsidy [ the-appl-tech ]
+  let the-tech-type [tech-type] of appl-tech
+  
+  let subsidy 0
+  if the-tech-type = "Fridge"         [ set subsidy subsidylevel-fridge ]
+  if the-tech-type = "TV"             [ set subsidy subsidylevel-TV ]
+  if the-tech-type = "Heating System" [ set subsidy subsidylevel-heatingsystem ]
+  if the-tech-type = "Washing Machine"[ set subsidy subsidylevel-wasmach ]
+  if the-tech-type = "Thermostat"     [ set subsidy subsidylevel-thermostat ]
+
+  if subsidy > 0 [
+    let max-label max [tech-label-index] of technologies with [ tech-type = the-tech-type ]
+    let my-label [ tech-label-index ] of appl-tech
+    if ( ( max-label - [ tech-label-index ] of appl-tech ) < minimum-label-subsidy) and ((ticks / ticks-per-year) <= last-year-subsidy) and ((ticks / ticks-per-year) >= first-year-subsidy) [
+      report subsidy 
+    ]
+  ]  
+  report 0
+  
+end
+
+to-report can-I-get-subsidy [ the-household ]
+    if who-to-subsidies = "all" [ report true ]
+    if who-to-subsidies = "low-income" [ if [hh-lowincome] of the-household = 1 [ report true ]]
+  report false
+end

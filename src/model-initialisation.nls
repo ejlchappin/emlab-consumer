@@ -1,0 +1,579 @@
+to read-configuration
+  let configuration csv:from-file  ( word "config.csv" ) ;; configuration file
+  foreach configuration [
+    ConfigLine -> let configuration-line ConfigLine
+    let c item 0 configuration-line
+    if c = "TechTypes" [ set TechTypes but-first configuration-line ]
+    if c = "TechTypeIcons" [ set TechTypeIcons but-first configuration-line ]
+    if c = "Households" [ set HouseholdTypes but-first configuration-line]
+    if c = "Suppliers" [ set SupplierTypes but-first configuration-line]
+    if c = "AllEnergyLabels" [ set all-energy-labels but-first configuration-line]
+    if c = "EnergyLabelColors" [ set energy-label-colors but-first configuration-line]
+    if c = "SupplierColors" [ set supplier-colors but-first configuration-line]
+    if c = "heatingsystem-label-efficiencies" [ set heatingsystem-label-efficiencies but-first configuration-line]
+  ]
+  set all-supplier-types SupplierTypes
+  show (word "Read configuration")
+end
+
+to read-util-functions
+  
+  let util csv:from-file  ( word "Data Utilityfunctions " country ".csv" ) 
+  foreach util [
+    utilLine -> let util-line utilLine
+    let u item 0 util-line
+    if u = "Fridge"          [ set fridge-util-coefficients        map uncertainty (but-first util-line) ]
+    if u = "Washing Machine" [ set washmach-util-coefficients      map uncertainty (but-first util-line) ]
+    if u = "TV"              [ set tv-util-coefficients            map uncertainty (but-first util-line) ]
+    if u = "Heating System"  [ set heatingsystem-util-coefficients map uncertainty (but-first util-line) ]
+    if u = "Thermostat"      [ set thermostat-util-coefficients    map uncertainty (but-first util-line) ]
+  ]
+  show (word "Read util functions")
+end
+
+;Apply uncertainty margin around the utility function parameters (if enabled)
+to-report uncertainty [original]
+  ifelse util-function-uncertainty > 0 [
+    report original * ((1 - util-function-uncertainty) + random-float util-function-uncertainty - random-float util-function-uncertainty)
+  ] 
+  [ report original 
+  ]
+end
+
+to read-defaults
+  let configuration csv:from-file  ( word "defaults.csv" ) ;; configuration file
+  foreach configuration [
+    ConfigLine -> let configuration-line ConfigLine
+    let c item 0 configuration-line
+    if c = "TicksPerYear" [ set ticks-per-year last configuration-line]
+    if c = "SimulationLengthInYears" [ set simulation-length-in-years last configuration-line]
+    if c = "hh-fridge-size-range" [ set hh-fridge-size-range last configuration-line]
+    if c = "hh-washmach-volume-per-hh-member" [ set hh-washmach-volume-per-hh-member last configuration-line]
+    if c = "hh-washmach-volume-range" [ set hh-washmach-volume-range last configuration-line]
+    if c = "min-number-of-friends" [ set min-number-of-friends last configuration-line]
+    if c = "number-of-friends-to-consider" [ set number-of-friends-to-consider last configuration-line]
+    if c = "number-of-neighbors-to-consider" [ set number-of-neighbors-to-consider last configuration-line]
+    if c = "neighbor-radius-to-consider" [ set neighbor-radius-to-consider last configuration-line]
+    if c = "number-of-friends-appls-to-short-list" [ set number-of-friends-appls-to-short-list last configuration-line]
+    if c = "suppl-max-appls" [ set suppl-max-appls last configuration-line]
+    if c = "labels-allowed-TV" [ set labels-allowed-TV last configuration-line]
+    if c = "labels-allowed-fridge" [ set labels-allowed-fridge last configuration-line]
+    if c = "labels-allowed-washmach" [ set labels-allowed-washmach last configuration-line]
+    if c = "labels-allowed-thermostat" [ set labels-allowed-washmach last configuration-line]
+    if c = "labels-allowed-heatingsystem" [ set labels-allowed-washmach last configuration-line]
+    if c = "tech-price-annual-change-percentage-TV" [ set tech-price-annual-change-percentage-TV last configuration-line]
+    if c = "tech-price-annual-change-percentage-fridge" [ set tech-price-annual-change-percentage-fridge last configuration-line]
+    if c = "tech-price-annual-change-percentage-washmach" [ set tech-price-annual-change-percentage-washmach last configuration-line]
+    if c = "tech-price-annual-change-percentage-thermostat" [ set tech-price-annual-change-percentage-thermostat last configuration-line]
+    if c = "tech-price-annual-change-percentage-heatingsystem" [ set tech-price-annual-change-percentage-heatingsystem last configuration-line]
+    if c = "tech-electricity-consumption-annual-change-percentage-TV" [ set tech-electricity-consumption-annual-change-percentage-TV last configuration-line]
+    if c = "tech-electricity-consumption-annual-change-percentage-fridge" [ set tech-electricity-consumption-annual-change-percentage-fridge last configuration-line]
+    if c = "tech-electricity-consumption-annual-change-percentage-washmach" [ set tech-electricity-consumption-annual-change-percentage-washmach last configuration-line]
+    if c = "tech-electricity-consumption-annual-change-percentage-thermostat" [ set tech-electricity-consumption-annual-change-percentage-thermostat last configuration-line]
+    if c = "tech-electricity-consumption-annual-change-percentage-heatingsystem" [ set tech-electricity-consumption-annual-change-percentage-heatingsystem last configuration-line]
+    if c = "tech-gas-consumption-annual-change-percentage-TV" [ set tech-gas-consumption-annual-change-percentage-TV last configuration-line]
+    if c = "tech-gas-consumption-annual-change-percentage-fridge" [ set tech-gas-consumption-annual-change-percentage-fridge last configuration-line]
+    if c = "tech-gas-consumption-annual-change-percentage-washmach" [ set tech-gas-consumption-annual-change-percentage-washmach last configuration-line]
+    if c = "tech-gas-consumption-annual-change-percentage-thermostat" [ set tech-gas-consumption-annual-change-percentage-thermostat last configuration-line]
+    if c = "tech-gas-consumption-annual-change-percentage-heatingsystem" [ set tech-gas-consumption-annual-change-percentage-heatingsystem last configuration-line]
+    if c = "frequencyOfImprovedModels" [ set frequencyOfImprovedModels last configuration-line]
+    if c = "maxAgeOfModelInStore" [ set maxAgeOfModelInStore last configuration-line]
+    if c = "percentageSmartThermostatLowersGas" [ set percentageSmartThermostatLowersGas last configuration-line]
+    if c = "global-alpha" [ set global-alpha last configuration-line]
+    if c = "policy-allowed-labels-fridge" [ set policy-allowed-labels-fridge last configuration-line]
+    if c = "policy-allowed-labels-TV" [ set policy-allowed-labels-TV last configuration-line]
+    if c = "policy-allowed-labels-washmach" [ set policy-allowed-labels-washmach last configuration-line]
+    if c = "policy-allowed-labels-thermostat" [ set policy-allowed-labels-thermostat last configuration-line]
+    if c = "policy-allowed-labels-heatingsystem" [ set policy-allowed-labels-heatingsystem last configuration-line]
+    if c = "remove-decommissioned-appls?" [ set remove-decommissioned-appls? last configuration-line]
+    if c = "show-old-decommissioned-devices?" [ set show-old-decommissioned-devices? last configuration-line]
+    if c = "decommission-old-appliances" [ set decommission-old-appliances last configuration-line]
+    if c = "profile?" [ set profile? last configuration-line]
+    if c = "record?" [ set record? last configuration-line]
+    if c = "network?" [ set network? last configuration-line]    
+    if c = "plot?" [ set plot? last configuration-line]
+    if c = "DeveloperMode" [ set DeveloperMode last configuration-line]
+    if c = "subsidylevel-TV" [ set subsidylevel-TV last configuration-line]
+    if c = "subsidylevel-heatingsystem" [ set subsidylevel-heatingsystem last configuration-line]
+    if c = "subsidylevel-fridge" [ set subsidylevel-fridge last configuration-line]
+    if c = "subsidylevel-wasmach" [ set subsidylevel-wasmach last configuration-line]
+    if c = "subsidylevel-thermostat" [ set subsidylevel-thermostat last configuration-line]
+    if c = "can-abolish-smart-thermostat?" [ set can-abolish-smart-thermostat? last configuration-line]
+    if c = "remove-hh-without-heating-cost?" [ set remove-hh-without-heating-cost? last configuration-line]
+    if c = "util-function-uncertainty" [ set util-function-uncertainty last configuration-line]
+  ]
+  show "Read defaults"
+end
+
+to read-energyprices
+  let prices csv:from-file  ( word "energyprices.csv" ) ;; configuration file
+  let found false
+  let col-to-start 0
+  let header true
+  foreach prices [
+    PricesLine -> let prices-line PricesLine
+    
+    if header [
+      ; this is the header.
+      let first-year item 3 prices-line
+      set col-to-start 2018 - first-year + 4
+      ;show (word "Found header, starting at column " col-to-start)
+      set header false
+    ]
+    if item 0 prices-line = country [ 
+      set found true
+      if item 1 prices-line = "electricity" [ set electricity-prices sublist prices-line col-to-start length prices-line ] 
+      if item 1 prices-line = "gas" [ set gas-prices  sublist prices-line col-to-start length prices-line ] 
+    ]
+  ]
+  if not found [ show (word "ERROR: No ENERGY PRICES found"  ) ] 
+  show "Read energy prices"
+end
+
+to initialise-technologies
+  let errors [] 
+  
+  foreach TechTypes [
+    TechType -> let TechList csv:from-file ( word "Data Technology " TechType " Default.csv" ) ;; each successive item from TechTypes becomes TechType; read file
+    let PropertyIndex item 0 TechList ;; top line in file contains column names = index
+    set TechList but-first TechList ;; remove index line (top line) from data
+    let n 0
+    foreach TechList [
+      TechProperties -> create-technologies 1 [ ;; each successive item from TechList becomes TechProperties and is used to create a technology catalogue instance
+        set tech-type TechType
+        ;print TechType
+        ifelse is-number? position "ID" PropertyIndex [ set tech-ID item position "ID" PropertyIndex TechProperties ] [ set errors lput (word TechType ": no id ") errors ]
+        ifelse is-number? position "label" PropertyIndex [ set tech-label item position "label" PropertyIndex TechProperties ] [ set errors lput (word TechType ": no label ") errors ]
+        ifelse is-number? position "price" PropertyIndex [ set tech-price item position "price" PropertyIndex TechProperties ] [ set errors lput (word TechType ": no price ") errors ]
+        ifelse is-number? position "electricity-consumption" PropertyIndex [ set tech-electricity-consumption item position "electricity-consumption" PropertyIndex TechProperties ]  [ set errors lput (word TechType ": no electricity consumption ") errors ]
+        ifelse is-number? position "gas-consumption" PropertyIndex [ set tech-gas-consumption item position "gas-consumption" PropertyIndex TechProperties ]  [ set errors lput (word TechType ": no gas consumption") errors ]
+        ifelse is-number? position "size" PropertyIndex [ set tech-size item position "size" PropertyIndex TechProperties ]  [ set errors lput (word TechType ": no size ") errors ]
+        ;ifelse is-number? position "volume" PropertyIndex [ set tech-volume item position "volume" PropertyIndex TechProperties ]  [ set errors lput (word TechType ": no volume ") errors ]
+        ifelse is-number? position "lifetime" PropertyIndex [ set tech-lifetime item position "lifetime" PropertyIndex TechProperties ]  [ set errors lput (word TechType ": no lifetime ") errors ]
+        ifelse is-number? position "lifetime-standard-deviation" PropertyIndex [ set tech-lifetime-standard-deviation item position "lifetime-standard-deviation" PropertyIndex TechProperties ]  [ set errors lput (word TechType ": no lifetime std") errors ]
+        ifelse is-number? position "introduction-year" PropertyIndex [ set tech-introduction-year item position "introduction-year" PropertyIndex TechProperties ]  [ set errors lput (word TechType ": no introduction year ") errors ]
+        ifelse is-number? position "savings" PropertyIndex [ set tech-savings item position "savings" PropertyIndex TechProperties ]  [ set errors lput (word TechType ": no savings ") errors ]
+        ifelse is-number? position "remote" PropertyIndex [ set tech-remote item position "remote" PropertyIndex TechProperties ]  [ set errors lput (word TechType ": no remote ") errors ]
+        ifelse is-number? position "display" PropertyIndex [ set tech-display item position "display" PropertyIndex TechProperties ]  [ set errors lput (word TechType ": no display ") errors ]
+        ifelse is-number? position "install-time" PropertyIndex [ set tech-install-time item position "install-time" PropertyIndex TechProperties ]  [ set errors lput (word TechType ": no install-time ") errors ]  
+       
+        ifelse is-number? position "warranty" PropertyIndex [ set tech-warranty item position "warranty" PropertyIndex TechProperties ]  [ set errors lput (word TechType ": no warranty ") errors ]
+        ifelse is-number? position "capacity" PropertyIndex [ set tech-capacity item position "capacity" PropertyIndex TechProperties ]  [ set errors lput (word TechType ": no capacity ") errors ]      
+        ifelse is-number? position "cw" PropertyIndex [ set tech-cw item position "cw" PropertyIndex TechProperties ]  [ set errors lput (word TechType ": no cw ") errors ]
+        ifelse is-number? position "tap-capacity-at-60" PropertyIndex [ set tech-tap-capacity-at-60 item position "tap-capacity-at-60" PropertyIndex TechProperties ]  [ set errors lput (word TechType ": no tap-capacity-at-60 ") errors ]
+        ifelse is-number? position "rating" PropertyIndex [ set tech-rating item position "rating" PropertyIndex TechProperties ]  [ set errors lput (word TechType ": rating") errors ]
+  
+        if (tech-introduction-year = "" ) [ set tech-introduction-year 0 ]
+        if (tech-introduction-year > 1000) [ set tech-introduction-year tech-introduction-year - 2018 ]
+        if (tech-lifetime = 0 or tech-lifetime = "") [ 
+          set tech-lifetime 14 
+          set tech-lifetime-standard-deviation 5
+        ]
+        if tech-rating = "" or tech-rating = 0 [set tech-rating 3]
+        if tech-label = 0 or tech-label = "" [ set tech-label "A" ]
+        
+        ;; TODO: only if heat system?:
+        set tech-label-index position-energy-label tech-label 
+        set tech-label-efficiency item position tech-label all-energy-labels heatingsystem-label-efficiencies
+        
+        set size 0.7
+        let TechTypeNumber position tech-type TechTypes
+        set shape item TechTypeNumber TechTypeIcons
+        set heading 90
+        fd .7 * (1 + TechTypeNumber)
+        set heading 0
+        fd 1 + 0.7 * n 
+        set n n + 1
+        
+        if TechType = "Thermostat" [
+          set tech-price-annual-change-percentage tech-price-annual-change-percentage-thermostat 
+          set tech-gas-consumption-annual-change-percentage tech-gas-consumption-annual-change-percentage-thermostat
+          set tech-electricity-consumption-annual-change-percentage tech-electricity-consumption-annual-change-percentage-thermostat
+          ;set labels-allowed labels-allowed-thermostat
+          
+          if tech-label = "A" [set tech-savings percentageSmartThermostatLowersGas];TODO, this is defined as smart
+          if tech-label = "B" [set tech-savings 0] ;TODO, this is defined as regular
+        ]
+        
+        if TechType = "Washing Machine" [
+          set tech-price-annual-change-percentage tech-price-annual-change-percentage-washmach
+          set tech-gas-consumption-annual-change-percentage tech-gas-consumption-annual-change-percentage-washmach
+          set tech-electricity-consumption-annual-change-percentage tech-electricity-consumption-annual-change-percentage-washmach
+          ;set labels-allowed labels-allowed-wasmach
+        ]
+        
+        if TechType = "Fridge" [
+
+          set tech-price-annual-change-percentage tech-price-annual-change-percentage-fridge
+          set tech-gas-consumption-annual-change-percentage tech-gas-consumption-annual-change-percentage-fridge
+          set tech-electricity-consumption-annual-change-percentage tech-electricity-consumption-annual-change-percentage-fridge
+          ;  set labels-allowed labels-allowed-fridge
+          if tech-size = 0 or tech-size = "" [set tech-size 278]    ;average volume if not there for fridges
+          if tech-electricity-consumption = 0 or tech-electricity-consumption = "" [set tech-electricity-consumption 200]    ;average volume if not there for fridges
+        ]
+       
+        if TechType = "TV" [
+          set tech-price-annual-change-percentage tech-price-annual-change-percentage-TV 
+          set tech-gas-consumption-annual-change-percentage tech-gas-consumption-annual-change-percentage-TV
+          set tech-electricity-consumption-annual-change-percentage tech-electricity-consumption-annual-change-percentage-TV
+          ;  set labels-allowed labels-allowed-TV
+        ]
+        
+        if size = 0[
+           set size 5 ;TODO no data yet
+        ]
+        
+        if TechType = "Heating System"[
+          set tech-price-annual-change-percentage tech-price-annual-change-percentage-heatingsystem 
+          set tech-gas-consumption-annual-change-percentage tech-gas-consumption-annual-change-percentage-heatingsystem
+          set tech-electricity-consumption-annual-change-percentage tech-electricity-consumption-annual-change-percentage-heatingsystem
+          if tech-cw = 0 [set tech-cw 3]
+          if tech-tap-capacity-at-60 = 0 [set tech-tap-capacity-at-60 13]
+          if tech-capacity = 0[ set tech-capacity 24 ]
+          if tech-warranty = "" or tech-warranty = "" [set tech-warranty 2]
+       ]
+      ]
+    ]
+  ]
+  show (word "Warnings of reading technologies: " remove-duplicates errors)
+  show (word "Read " count technologies " technologies of types " TechTypes)
+  suppl-update-technologies
+end
+
+to initialise-stock
+  let errors [] 
+  foreach TechTypes [
+    TechType -> let stocks csv:from-file ( word "Data Stock.csv" ) ;; each successive item from TechTypes becomes TechType; read file
+    
+    foreach stocks [
+      StockLine -> let stock-line StockLine
+      if item 0 stock-line = country [ 
+        if item 1 stock-line = "Fridge" [ set fridge-stock sublist stock-line 2 length stock-line ]
+        if item 1 stock-line = "Washing Machine" [ set washmach-stock sublist stock-line 2 length stock-line ]
+        if item 1 stock-line = "TV" [ set tv-stock sublist stock-line 2 length stock-line ]
+        if item 1 stock-line = "Heating System" [ set heatingsystem-stock sublist stock-line 2 length stock-line ]
+        if item 1 stock-line = "Thermostat" [ set thermostat-stock sublist stock-line 2 length stock-line ]
+      ]
+    ]
+  ]
+  
+  show "Read stock"
+end
+
+to initialise-households
+  ;create households one by one
+  let errors [] 
+  
+  foreach HouseholdTypes [
+    HouseholdType -> let HouseholdList csv:from-file ( word "Data Households " HouseholdType " " country ".csv" ) ;; each successive item from Households becomes Household; read file
+    let PropertyIndex item 0 HouseholdList ;; top line in file contains column names = index
+    set HouseholdList but-first HouseholdList ;; remove index line (top line) from data
+    
+    if DeveloperMode > 0 [
+      set HouseholdList n-of DeveloperMode HouseholdList
+    ]
+    foreach HouseholdList [
+      HouseholdProperties -> create-households 1 [ ;; each successive item from HouseholdList becomes HouseholdProperties and is used to create a household instance
+        set shape "house"
+        set color white
+        set xcor round (max-pxcor / 2) - 1
+        set ycor round (max-pycor / 2) - 1
+        while [ any? other turtles-here ] [                      ; to avoid collision of houses - IB20180209
+          ifelse (random 2 = 0) [                                ; to create a nice street plan - IB20180209
+            set xcor (round (random (max-pxcor - 10) / 8)) * 8 + 5
+            set ycor random (max-pycor - 10) + 5
+            ask patch-at 0 -1 [ set pcolor gray ] ; to make the roads more continuous
+            ask patch-at 0  1 [ set pcolor gray ]
+          ]
+          [
+            set xcor random (max-pxcor - 10) + 5
+            set ycor (round (random (max-pycor - 10) / 8)) * 8 + 5
+            ask patch-at -1 0 [ set pcolor gray ] ; to make the roads more continuous
+            ask patch-at  1 0 [ set pcolor gray ]
+          ]
+          ask patch-here [ set pcolor gray ]
+        ]
+
+        ifelse (is-number? position "fridgeMinOpts" PropertyIndex) and (is-number? position "fridgeMaxOpts" PropertyIndex) [ 
+          let fridgeMinOpts item position "fridgeMinOpts" PropertyIndex HouseholdProperties
+          let fridgeMaxOpts item position "fridgeMaxOpts" PropertyIndex HouseholdProperties 
+          set hh-number-of-options random (fridgeMaxOpts - fridgeMinOpts) + fridgeMinOpts
+          ;ifelse dummy = "NA" [  ]
+        ] [ set hh-number-of-options random 10 + 5 set errors lput (word "Households: no number of options") errors ]
+        ifelse is-number? position "age"           PropertyIndex [ set hh-age           item position "age"           PropertyIndex HouseholdProperties ] [ set hh-age random 60 + 18 set errors lput (word "Households: age")            errors ]       
+        ifelse is-number? position "bigFamily"     PropertyIndex [ set hh-bigfamily     item position "bigFamily"     PropertyIndex HouseholdProperties ] [ set hh-bigfamily random 1 set errors lput (word "Households: no big family")  errors ]
+        ifelse is-number? position "buildingBuilt" PropertyIndex [ set hh-buildingbuilt item position "buildingBuilt" PropertyIndex HouseholdProperties ] [ set hh-buildingbuilt "NA" set errors lput (word "Households: building built") errors ] 
+        ifelse is-number? position "buildingOwner" PropertyIndex [ set hh-buildingowner item position "buildingOwner" PropertyIndex HouseholdProperties ] [ set hh-buildingowner "NA" set errors lput (word "Households: building owner") errors ] 
+        ifelse is-number? position "buildingSize"  PropertyIndex [ set hh-buildingsize  item position "buildingSize"  PropertyIndex HouseholdProperties ] [ set hh-buildingsize  "NA" set errors lput (word "Households: building size")  errors ] 
+        ifelse is-number? position "buildingType"  PropertyIndex [ set hh-buildingtype  item position "buildingType"  PropertyIndex HouseholdProperties ] [ set hh-buildingtype  "NA" set errors lput (word "Households: building type")  errors ] 
+        ifelse is-number? position "elder"         PropertyIndex [ set hh-elder         item position "elder"         PropertyIndex HouseholdProperties ] [ set hh-elder         "NA" set errors lput (word "Households: elder")          errors ] 
+        ifelse is-number? position "elecCosts"     PropertyIndex [ set hh-eleccosts     item position "elecCosts"     PropertyIndex HouseholdProperties ] [ set hh-eleccosts     "NA" set errors lput (word "Households: elec costs")     errors ] 
+        ifelse is-number? position "envBehav"      PropertyIndex [ set hh-envbehav      item position "envBehav"      PropertyIndex HouseholdProperties ] [ set hh-envbehav random 1  set errors lput (word "Households: no env behav")   errors ]
+        ;TODO is the scale 0 or 1 in envBehav?
+        ifelse is-number? position "envBehav01"    PropertyIndex [ set hh-envbehav01    item position "envBehav01"    PropertyIndex HouseholdProperties ] [ set hh-envbehav01    "NA" set errors lput (word "Households: envirmtl behvr") errors ] 
+        ifelse is-number? position "e_price"       PropertyIndex [ set hh-e-price       item position "e_price"       PropertyIndex HouseholdProperties ] [ set hh-e-price       "NA" set errors lput (word "Households: e price")        errors ] 
+        ifelse is-number? position "fridgeCurAge"  PropertyIndex [ set hh-fridge-age    item position "fridgeCurAge"  PropertyIndex HouseholdProperties ] [ set hh-fridge-age    0    set errors lput (word "Households: fridge age")     errors ] 
+        ifelse is-number? position "fridgeCurClss" PropertyIndex [ set hh-fridge-class  item position "fridgeCurClss" PropertyIndex HouseholdProperties ] [ set hh-fridge-class  "NA" set errors lput (word "Households: fridge class")   errors ] 
+        ifelse is-number? position "fridgeCurIncl" PropertyIndex [ set hh-fridge-incl   item position "fridgeCurIncl" PropertyIndex HouseholdProperties ] [ set hh-fridge-incl   "NA" set errors lput (word "Households: fridge incl")    errors ] 
+        ifelse is-number? position "fridgeCurSize" PropertyIndex [ set hh-fridge-size   item position "fridgeCurSize" PropertyIndex HouseholdProperties ] [ set hh-fridge-size   "NA" set errors lput (word "Households: fridge size")    errors ] 
+        ifelse is-number? position "fridgeNewLife" PropertyIndex [ set hh-fridge-life   item position "fridgeNewLife" PropertyIndex HouseholdProperties ] [ set hh-fridge-life   "NA" set errors lput (word "Households: fridge life")    errors ] 
+        ifelse is-number? position "fridgeNewPlan" PropertyIndex [ set hh-fridge-plan   item position "fridgeNewPlan" PropertyIndex HouseholdProperties ] [ set hh-fridge-plan   "NA" set errors lput (word "Households: fridge plan")    errors ] 
+        ifelse is-number? position "heatAge"       PropertyIndex [ set hh-heat-age      item position "heatAge"       PropertyIndex HouseholdProperties ] [ set hh-heat-age      "NA" set errors lput (word "Households: heat age")       errors ] 
+        ifelse is-number? position "heatConsArea"  PropertyIndex [ set hh-heatconsarea  item position "heatConsArea"  PropertyIndex HouseholdProperties ] [ set hh-heatconsarea  "NA" set errors lput (word "Households: heat cons area") errors ] 
+        ifelse is-number? position "heatCostEst"   PropertyIndex [ set hh-heatcost      item position "heatCostEst"   PropertyIndex HouseholdProperties ] [ set hh-heatcost      0    set errors lput (word "Households: heat cost")      errors ] 
+        ;ifelse is-number? position "heatCost"      PropertyIndex [ set hh-heatcost      item position "heatCost"      PropertyIndex HouseholdProperties ] [ set hh-heatcost      0    set errors lput (word "Households: heat cost")      errors ] 
+        ifelse is-number? position "heatCostRep"   PropertyIndex [ set hh-heatcostrep   item position "heatCostRep"   PropertyIndex HouseholdProperties ] [ set hh-heatcostrep   "NA" set errors lput (word "Households: heat cost rep")  errors ] 
+        ifelse is-number? position "heatType1"     PropertyIndex [ set hh-heat-type1    item position "heatType1"     PropertyIndex HouseholdProperties ] [ set hh-heat-type1    "NA" set errors lput (word "Households: heat type 1")    errors ] 
+        ifelse is-number? position "heatType2"     PropertyIndex [ set hh-heat-type2    item position "heatType2"     PropertyIndex HouseholdProperties ] [ set hh-heat-type2    "NA" set errors lput (word "Households: heat type 2")    errors ] 
+        ifelse is-number? position "hhMembers"     PropertyIndex [ set hh-size          item position "hhMembers"     PropertyIndex HouseholdProperties ] [ set hh-size random 5      set errors lput (word "Households: no size")        errors ] 
+        ;ifelse is-number? position "income"        PropertyIndex [ set hh-income        item position "income"        PropertyIndex HouseholdProperties ] [ set hh-income        "NA" set errors lput (word "Households: no income")      errors ]
+        ifelse is-number? position "lowIncome"     PropertyIndex [ set hh-lowincome     item position "lowIncome"     PropertyIndex HouseholdProperties ] [ set hh-lowincome random 2 set errors lput (word "Households: no low income")  errors ]
+        ifelse is-number? position "rebates"       PropertyIndex [ set hh-rebates       item position "rebates"       PropertyIndex HouseholdProperties ] [ set hh-rebates       "NA" set errors lput (word "Households: rebates")        errors ] 
+        ifelse is-number? position "recComTec"     PropertyIndex [ set hh-rec-comtec    item position "recComTec"     PropertyIndex HouseholdProperties ] [ set hh-rec-comtec    "NA" set errors lput (word "Households: rec ComTec")     errors ] 
+        ifelse is-number? position "recEnePro"     PropertyIndex [ set hh-rec-enepro    item position "recEnePro"     PropertyIndex HouseholdProperties ] [ set hh-rec-enepro    "NA" set errors lput (word "Households: rec EnePro")     errors ] 
+        ifelse is-number? position "recGov"        PropertyIndex [ set hh-rec-gov       item position "recGov"        PropertyIndex HouseholdProperties ] [ set hh-rec-gov       "NA" set errors lput (word "Households: rec Gov")        errors ] 
+        ifelse is-number? position "recIndAge"     PropertyIndex [ set hh-rec-indage    item position "recIndAge"     PropertyIndex HouseholdProperties ] [ set hh-rec-indage    "NA" set errors lput (word "Households: rec IndAge")     errors ] 
+        ifelse is-number? position "recMedia"      PropertyIndex [ set hh-rec-media     item position "recMedia"      PropertyIndex HouseholdProperties ] [ set hh-rec-media     "NA" set errors lput (word "Households: rec Media")      errors ] 
+        ifelse is-number? position "recNeiRelFri"  PropertyIndex [ set hh-rec-neirelfri item position "recNeiRelFri"  PropertyIndex HouseholdProperties ] [ set hh-rec-neirelfri "NA" set errors lput (word "Households: rec NeiRelFri")  errors ] 
+        ifelse is-number? position "recNonGovEnv"  PropertyIndex [ set hh-rec-nongovenv item position "recNonGovEnv"  PropertyIndex HouseholdProperties ] [ set hh-rec-nongovenv "NA" set errors lput (word "Households: rec NonGovEnv")  errors ] 
+        ifelse is-number? position "recPriWebBlo"  PropertyIndex [ set hh-rec-priwebblo item position "recPriWebBlo"  PropertyIndex HouseholdProperties ] [ set hh-rec-priwebblo "NA" set errors lput (word "Households: rec PriWebBlo")  errors ] 
+        ifelse is-number? position "recResIns"     PropertyIndex [ set hh-rec-resins    item position "recResIns"     PropertyIndex HouseholdProperties ] [ set hh-rec-resins    "NA" set errors lput (word "Households: rec ResIns")     errors ] 
+        ifelse is-number? position "recSocNet"     PropertyIndex [ set hh-rec-socnet    item position "recSocNet"     PropertyIndex HouseholdProperties ] [ set hh-rec-socnet    "NA" set errors lput (word "Households: rec SocNet")     errors ] 
+        ifelse is-number? position "thermAppCnt"   PropertyIndex [ set hh-therm-appcnt  item position "thermAppCnt"   PropertyIndex HouseholdProperties ] [ set hh-therm-appcnt  "NA" set errors lput (word "Households: therm app cnt")  errors ] 
+        ifelse is-number? position "thermAppDwn"   PropertyIndex [ set hh-therm-appdwn  item position "thermAppDwn"   PropertyIndex HouseholdProperties ] [ set hh-therm-appdwn  "NA" set errors lput (word "Households: therm app dwn")  errors ] 
+        ifelse is-number? position "thermAppInf"   PropertyIndex [ set hh-therm-appinf  item position "thermAppInf"   PropertyIndex HouseholdProperties ] [ set hh-therm-appinf  "NA" set errors lput (word "Households: therm app inf")  errors ] 
+        ifelse is-number? position "thermPhone"    PropertyIndex [ set hh-therm-phone   item position "thermPhone"    PropertyIndex HouseholdProperties ] [ set hh-therm-phone   "NA" set errors lput (word "Households: therm phone")    errors ] 
+        ifelse is-number? position "thermPlan"     PropertyIndex [ set hh-therm-plan    item position "thermPlan"     PropertyIndex HouseholdProperties ] [ set hh-therm-plan    "NA" set errors lput (word "Households: therm plan")     errors ] 
+        ifelse is-number? position "thermProg"     PropertyIndex [ set hh-therm-prog    item position "thermProg"     PropertyIndex HouseholdProperties ] [ set hh-therm-prog    "NA" set errors lput (word "Households: therm prog")     errors ] 
+        ifelse is-number? position "thermSmart"    PropertyIndex [ set hh-therm-smart   item position "thermSmart"    PropertyIndex HouseholdProperties ] [ set hh-therm-smart   "DontKnow" set errors lput (word "Households: therm smart")    errors ]
+        set hh-util-func-alpha global-alpha ; previously set to 1 in the translation files; not based on data files
+        
+        if hh-heatcost = "" [ set hh-heatcost 0 ] 
+        
+       
+        
+        ;grow network of friends
+        if(network?)[
+          ifelse (count households > min-number-of-friends + 1) [
+            let TheHousehold self
+            ask n-of min-number-of-friends links [
+              ask one-of both-ends [ create-friend-with TheHousehold [ hide-link ] ]
+            ]
+          ][ 
+            if count households = min-number-of-friends + 1 [
+              ask households [ 
+                ask other households [
+                  create-friend-with myself
+                  [ hide-link ]
+                ]
+              ]
+            ]
+          ]
+        ]
+        
+        ;Remove hh without heating cost 
+        if hh-heatcost = 0 [ 
+          ;show (word "I die" self)
+          if remove-hh-without-heating-cost? [ 
+            die 
+          ]
+        ]
+         
+      ]
+    ]
+  ]
+  show (word "Warnings of reading households: " remove-duplicates errors)
+  show (word "Read " count households " households of types " HouseholdTypes)
+
+
+end
+
+to initialise-suppliers
+  foreach SupplierTypes [
+    SupplierType -> let SupplierList csv:from-file ( word "Data Supplier " SupplierType " Default.csv" ) ;; each successive item from Suppliers becomes Supplier; read file
+    let PropertyIndex item 0 SupplierList ;; top line in file contains column names = index
+    set SupplierList but-first SupplierList ;; remove index line (top line) from data
+    foreach SupplierList [
+      SupplierProperties -> create-suppliers 1 [ ;; each successive item from SupplierList becomes SupplierProperties and is used to create a supplier instance
+        set suppl-type SupplierType
+        set shape "building store"
+        set color item position suppl-type all-supplier-types supplier-colors
+        set size 2
+        set xcor 9 + 8 * ( count suppliers with [ suppl-type = SupplierType ] )
+        set ycor 25 + 8 * ( position suppl-type all-supplier-types )
+      ]
+    ]
+  ] 
+  show (word "Read " count suppliers " suppliers of types " SupplierTypes)
+end
+
+to initialise-appliances
+  ;generate appliances at suppliers and households
+
+  ask suppliers [
+    foreach TechTypes [
+      TechType -> let tempTechType TechType
+      
+      let TheSupplier self 
+      let TheTechnologies (turtle-set technologies with [ tech-type = tempTechType and tech-introduction-year <= 0 ])
+      
+      ask n-of min (list (count TheTechnologies) (suppl-max-appls / length TechTypes) ) TheTechnologies [
+        let TheTech self
+        hatch-appliances 1 [
+          create-appl-link-with TheSupplier [ hide-link ] ; link between supplier and stock item
+          move-to TheSupplier
+          set appl-tech TheTech
+
+          ;Apply defaults and details (colors, etc)
+          apply-appliance-details-supplier 
+        ]
+      ]
+    ]
+  ]
+
+  ;Make a list of all appliances available in year 0, so we generate current appliances for households
+  let AllStartTechnologies (turtle-set technologies with [ tech-introduction-year <= 0 ]) ;All technologies available at the start of the simulation
+  let AllStartAppliances turtle-set nobody
+  ask AllStartTechnologies [
+    let thisStartTechnology self
+    hatch-appliances 1 [
+      set appl-tech thisStartTechnology
+      set AllStartAppliances (turtle-set AllStartAppliances self)
+    ]
+  ]
+  
+  ask households [
+    let mySupplier one-of suppliers
+    set hh-supplier mySupplier
+    let smart hh-therm-smart
+    set hh-gas-consumption-base 0
+    set hh-have-heating false
+    if hh-heat-type1 = "GasBoiler" [ if hh-buildingowner = "Y" [ if sum heatingsystem-util-coefficients != 0 [
+      set hh-have-heating true 
+      if is-number? hh-heatcost [
+       set hh-gas-consumption-base hh-heatcost / gas-price
+        if hh-therm-smart = "Y" [ set hh-gas-consumption-base hh-gas-consumption-base / percentageSmartThermostatLowersGas ]
+      ]
+    ] ] ]
+    foreach TechTypes [
+      TechType -> let tempTechType TechType
+      
+      if(tempTechType != "Heating System" or hh-have-heating)
+
+      [hatch-appliances 1 [
+        create-appl-link-with myself [ hide-link ] ; link between household and appliance
+        let myApplianceLonglist ( AllStartAppliances with [ ( [ tech-type ] of appl-tech ) = tempTechType ] )
+        ;Apply general restrictions to make the starting set more realistic. 
+        
+        ;print count myApplianceLonglist
+        set myApplianceLonglist applyGeneralApplianceRestrictions myself TechType myApplianceLonglist
+        set myApplianceLonglist applyThermosatRestrictionsAtStart TechType myApplianceLonglist smart
+        
+        ;For fridges, take a weighted random label according to stock values.
+        let the-label ""
+        if tempTechType = "Fridge" [
+          if fridge-stock != 0 [
+            let pairs (map list all-energy-labels fridge-stock)
+            set the-label first rnd:weighted-one-of-list pairs [ [p] -> last p ]
+            set myApplianceLonglist applyLabelRestrictionsAtStart myApplianceLonglist the-label
+          ]
+        ]
+        
+        
+        ;For heating systems, take a weighted random label according to stock values.
+        set the-label ""
+        if tempTechType = "Heating System" [
+          if heatingsystem-stock != 0 [
+            let pairs (map list all-energy-labels heatingsystem-stock)
+            set the-label first rnd:weighted-one-of-list pairs [ [p] -> last p ]
+            set myApplianceLonglist applyLabelRestrictionsAtStart myApplianceLonglist the-label
+          ]
+        ]
+        
+
+        set appl-tech [ appl-tech ] of one-of myApplianceLonglist
+        
+        set size 1 ; the icon size of the first appliance is 1, new ones are smaller.
+        set heading 45
+        let TechTypeNumber position [tech-type] of appl-tech TechTypes
+        fd 1 + TechTypeNumber
+         
+        ;Apply default details (colors, etc)
+        apply-appliance-details-household
+
+        
+        
+   
+     
+        
+        ;Specify tick installed and end of life on the basis of actual lifetime, which is normally distributed (and has been determined above)
+        let age 0
+        ifelse ( TechType = "Fridge" and is-number? [hh-fridge-age] of myself ) [
+          set age [hh-fridge-age] of myself
+        ][
+          set appl-tick-installed 0 - random appl-end-of-life
+          set appl-end-of-life appl-tick-installed + appl-end-of-life
+          set age 0 - appl-tick-installed / ticks-per-year
+        ]
+
+        
+        let techID [ tech-id ] of appl-tech
+        
+        
+        ;See whether we have an old tech from the same type already..
+        ifelse any? technologies with [ ( tech-introduction-year = 0 - age ) and ( tech-ID = techID ) and tech-type = tempTechType ] [
+          ;Take an existing old appl-tech
+          set appl-tech one-of technologies with [ ( tech-introduction-year = 0 - age ) and ( tech-ID = techID ) and tech-type = tempTechType ] 
+          ;show (word "I found an existing old tech: " appl-tech " that was introduced " age " years ago of type " [tech-type] of appl-tech " and with ID " [tech-ID] of appl-tech)
+        ]
+        [ ;Generate a new one       
+          let TheHatchedTech nobody
+          ask appl-tech [ 
+            hatch-technologies 1 [
+              set TheHatchedTech self
+              set tech-price tech-price * (1 + (tech-price-annual-change-percentage / 100)) ^ (0 - age)
+              set tech-electricity-consumption tech-electricity-consumption * (1 + (tech-electricity-consumption-annual-change-percentage / 100)) ^ (0 - age)
+              set tech-gas-consumption tech-gas-consumption * (1 + (tech-gas-consumption-annual-change-percentage / 100)) ^ (0 - age)
+              set tech-introduction-year 0 - age
+              hide-turtle ;the old technologies are hidden. 
+            ]
+          ]
+          ;Store the revised tech to the appliance.
+          set appl-tech TheHatchedTech
+        ]
+      ]
+    ]]
+    
+    ; Households are colors to their last selected supplier ; TODO shoulbe be recolored when purchasing a device.
+    set color ( [ color ] of hh-supplier )
+    ;set label word count my-appl-links "    "
+  ]
+  show (word "Generated " count appliances " appliances")
+end
+
+
+to apply-appliance-details-household ; TODO rethink name
+  let lifetime round ((ticks-per-year * [ tech-lifetime ] of appl-tech) + random-normal 0 [ tech-lifetime-standard-deviation ] of appl-tech ); Determine actual lifetime of this appliance
+  set appl-end-of-life appl-tick-installed + lifetime; ;set tick that this device breaks
+  let TechTypeNumber position [tech-type] of appl-tech TechTypes
+  set shape item TechTypeNumber TechTypeIcons
+  set color item ( [ tech-label-index ] of appl-tech ) energy-label-colors
+  set appl-status "operating"
+  set label ""
+end
+
+to apply-appliance-details-supplier ; TODO rethink name
+  let TheSupplier [other-end] of one-of my-appl-links
+  let TheTechType [tech-type] of appl-tech 
+  set size 0.4
+  let TechTypeNumber position TheTechType TechTypes
+  set shape item TechTypeNumber TechTypeIcons
+  set color item ( [ tech-label-index ] of appl-tech ) energy-label-colors
+  set heading 90
+  fd .5 * (1 + TechTypeNumber)
+  set heading 0
+  let number count ([ appl-link-neighbors ] of TheSupplier) with [ ([tech-type] of appl-tech) = TheTechType]
+  fd 1 + 0.4 * number
+  
+  set appl-status "for sale"
+end
